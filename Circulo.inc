@@ -38,7 +38,7 @@ enum E_CIRCLE_STRUCT
 }
 
 new CircleData[MAX_PLAYERS][MAX_CIRCLES_DRAW][E_CIRCLE_STRUCT];
-new Iterator:circleIDS<MAX_CIRCLES_DRAW>;
+new Iterator:circleIDS[MAX_PLAYERS]<MAX_CIRCLES_DRAW>;
 
 forward UpdatePlayerCircleProgress(playerid, drawId, value);
 
@@ -54,7 +54,7 @@ stock DestroyAllPlayerCircleProgress(playerid)
     for (new i = 0; i < MAX_CIRCLES_DRAW; i++)
     {
         DestroyPlayerCircleProgress(playerid, i);
-        Iter_Remove(circleIDS, i);
+        Iter_Remove(circleIDS[playerid], i);
     }
     return true;
 }
@@ -75,7 +75,7 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
         {
             PlayerTextDrawDestroy(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
             CircleData[playerid][drawId][CircleData_Points][i] = PlayerText:INVALID_TEXT_DRAW;
-            Iter_Remove(circleIDS, drawId);
+            Iter_Remove(circleIDS[playerid], drawId);
         }
     }
 
@@ -86,7 +86,7 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
 
 stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEFAULT_COLOR, background_color = DEFAULT_BACKGROUND_COLOR, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
 {
-    new drawId = Iter_Free(circleIDS);
+    new drawId = Iter_Free(circleIDS[playerid]);
     if (IsValidCircle(playerid, drawId))
     {
         SendClientMessage(playerid, -1, "Error: Circle reached the limit");
@@ -117,7 +117,7 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEF
         CircleData[playerid][drawId][CREATED_CIRCLE][count] = true;
         count++;
     }
-    Iter_Add(circleIDS, drawId);
+    Iter_Add(circleIDS[playerid], drawId);
     return drawId;
 }
 
