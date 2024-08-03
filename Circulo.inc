@@ -169,7 +169,6 @@ stock ShowPlayerCircleProgress(playerid, drawId)
     {
         if (CircleData[playerid][drawId][CREATED_CIRCLE][i])
         {
-            PlayerTextDrawHide(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
             PlayerTextDrawShow(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
         }
     }
