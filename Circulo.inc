@@ -1,175 +1,177 @@
-
-
 /*
 
-                    ooooo      ooo       .o.       ooooooooooooo ooooo oooooo     oooo       .o.        .oooooo..o 
-                    `888b.     `8'      .888.      8'   888   `8 `888'  `888.     .8'       .888.      d8P'    `Y8 
-                    8 `88b.    8      .8"888.          888       888    `888.   .8'       .8"888.     Y88bo.      
-                    8   `88b.  8     .8' `888.         888       888     `888. .8'       .8' `888.     `"Y8888o.  
-                    8     `88b.8    .88ooo8888.        888       888      `888.8'       .88ooo8888.        `"Y88b 
-                    8       `888   .8'     `888.       888       888       `888'       .8'     `888.  oo     .d8P 
-                    o8o        `8  o88o     o8888o     o888o     o888o       `8'       o88o     o8888o 8""88888P'  
-
-
-        native CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = 0xFF0000FF, background_color = 0x000000FF, Float:size = 10.0, Float:thickness = 0.2, polygons = DEFAULT_CIRCLE_POLYGONS);
-        native UpdatePlayerCircleProgress(playerid, drawId, value);
-        native DestroyPlayerCircleProgress(playerid, drawId);
-        native DestroyPlayerCircleProgressAll(playerid);
-                                                                                          
-*/
-
-
-            // Definers
-#define                 MAX_CIRCULOS_DRAW               (50)
-#define                 DEFAULT_CIRCLE_POLYGONS         (15.0)  // If you want quality, use 3.0.
-// The smaller the number, the more defined the circle will be. I recommend using 15.0 to support more circles and textdraws without exceeding the limit imposed by SAMP.
-
-enum CircleDraw_Enum {
-
-        // Creating
-    bool:CircleDraw_Valid,
-    bool:CircleDraw_Update,
-
-        // Config
-    Float:CircleDraw_Position[2],
-    Float:CircleDraw_Thickness,
-    Float:CircleDraw_Size,
-    Float:CircleDraw_Value,
-    Float:CircleDraw_Polygons,
-    CircleDraw_Color,
-    CircleDraw_Background,
-
-        // Draws
-	bool:CircleDraw_Created[120 + 1],
-	PlayerText:CircleDraw_Points[120 + 1]
-}
-new CircleDraw[MAX_PLAYERS][MAX_CIRCULOS_DRAW][CircleDraw_Enum];
-
-public OnPlayerDisconnect(playerid, reason) {
-
-	DestroyPlayerCircleProgressAll(playerid);       // Invalid All [Not Required if you use Streamertextdraw :)]
-
-	new ret = 1;
-	#if defined MainCircle_OnPlayerDisconnect
-		ret = MainCircle_OnPlayerDisconnect(playerid, reason);
-	#endif
-	return ret;
-}
-
-#if defined _ALS_OnPlayerDisconnect
-	#undef OnPlayerDisconnect
-#else
-	#define _ALS_OnPlayerDisconnect
-#endif
-#define OnPlayerDisconnect MainCircle_OnPlayerDisconnect
-#if defined MainCircle_OnPlayerDisconnect
-	forward MainCircle_OnPlayerDisconnect(playerid, reason);
-#endif
-
-
-
-/*
-
-                    .oooooo..o ooooooooooooo   .oooooo.     .oooooo.   oooo    oooo  .oooooo..o
-                    d8P'    `Y8 8'   888   `8  d8P'  `Y8b   d8P'  `Y8b  `888   .8P'  d8P'    `Y8
-                    Y88bo.           888      888      888 888           888  d8'    Y88bo.     
-                    `"Y8888o.       888      888      888 888           88888[       `"Y8888o. 
-                        `"Y88b      888      888      888 888           888`88b.         `"Y88b
-                    oo     .d8P      888      `88b    d88' `88b    ooo   888  `88b.  oo     .d8P
-                    8""88888P'      o888o      `Y8bood8P'   `Y8bood8P'  o888o  o888o 8""88888P' 
+    SCRIPT UPDATED BY TsumuX
+    Reduce CreateTextDraw to prevent lags
+    Using Iterator to replace some useless loop
+    Add ShowPlayerCircleProgress and HideCircleProgressForPlayer
 
 */
+#define MAX_CIRCLES_DRAW                50
+#define DEFAULT_CIRCLE_POLYGONS         15.0
+#define INVALID_DRAW_ID                 -1
 
-stock ctd(Float:angle, Float:distance, Float:sx, Float:sy, &Float:x, &Float:y) {
-	x = sx + (distance * floatsin(-angle, degrees));
-	y = sy + (distance * floatcos(angle, degrees));
-	return true;
+#define MAX_POINTS                      120
+#define MAX_ANGLE                       360.0
+#define MIN_PROGRESS_VALUE              0
+#define MAX_PROGRESS_VALUE              100
+#define DEFAULT_COLOR                   0xFF0000FF
+#define DEFAULT_BACKGROUND_COLOR        0x000000FF
+#define DEFAULT_SIZE                    10.0
+#define DEFAULT_THICKNESS               0.2
+
+enum E_CIRCLE_STRUCT
+{
+    CIRCLE_COLOR,
+    CIRCLE_BACKGROUND,
+
+    bool:CREATED_CIRCLE[MAX_POINTS + 1],
+    bool:VALID_CIRCLE,
+    bool:CIRCLE_UPDATE,
+
+    Float:CIRCLE_POS[2],
+    Float:CIRCLE_THICKNESS,
+    Float:CIRCLE_SIZE,
+    Float:CIRCLE_VALUE,
+    Float:CIRCLE_POLYGONS,
+
+    PlayerText:CircleData_Points[MAX_POINTS + 1]
 }
 
-stock DestroyPlayerCircleProgressAll(playerid) {
+new CircleData[MAX_PLAYERS][MAX_CIRCLES_DRAW][E_CIRCLE_STRUCT];
+new Iterator:circleIDS<MAX_CIRCLES_DRAW>;
 
-    for(new i = 0; i < MAX_CIRCULOS_DRAW; i++)
-        DestroyPlayerCircleProgress(playerid, i);   
+forward UpdatePlayerCircleProgress(playerid, drawId, value);
 
+stock CalculateTextDrawPosition(Float:angle, Float:distance, Float:sx, Float:sy, &Float:x, &Float:y)
+{
+    x = sx + (distance * floatsin(-angle, degrees));
+    y = sy + (distance * floatcos(angle, degrees));
     return true;
 }
 
-stock DestroyPlayerCircleProgress(playerid, drawId) {
-    
-    if(drawId >= MAX_CIRCULOS_DRAW) return false;
-    if(CircleDraw[playerid][drawId][CircleDraw_Valid] == false) return false;
-
-    for(new i = 0; i < 120; i ++) {
-        if(CircleDraw[playerid][drawId][CircleDraw_Points][i] == PlayerText:INVALID_TEXT_DRAW) continue;
-        PlayerTextDrawDestroy(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][i]);
-        CircleDraw[playerid][drawId][CircleDraw_Points][i] = PlayerText:INVALID_TEXT_DRAW;
-	}
-
-    new dsadsa[CircleDraw_Enum];
-    CircleDraw[playerid][drawId] = dsadsa;
-	return true;
-}
-
-stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = 0xFF0000FF, background_color = 0x000000FF, Float:size = 10.0, Float:thickness = 0.2, Float:polygons = DEFAULT_CIRCLE_POLYGONS) {
-	
-    for(new i = 0; i < MAX_CIRCULOS_DRAW; i++) {
-        if(CircleDraw[playerid][i][CircleDraw_Valid] == true) continue;
-
-        /*      Config                    */
-        CircleDraw[playerid][i][CircleDraw_Valid] = true;
-        CircleDraw[playerid][i][CircleDraw_Thickness] = thickness;
-        CircleDraw[playerid][i][CircleDraw_Color] = color;
-        CircleDraw[playerid][i][CircleDraw_Background] = background_color;
-        CircleDraw[playerid][i][CircleDraw_Size] = size;
-        CircleDraw[playerid][i][CircleDraw_Position][0] = pos_x;
-        CircleDraw[playerid][i][CircleDraw_Position][1] = pos_y;
-        CircleDraw[playerid][i][CircleDraw_Value] = -1.0;   // Prevent Bugs
-        CircleDraw[playerid][i][CircleDraw_Polygons] = polygons;
-
-        UpdatePlayerCircleProgress(playerid, i, 100);
-        return i;
+stock DestroyAllPlayerCircleProgress(playerid)
+{
+    for (new i = 0; i < MAX_CIRCLES_DRAW; i++)
+    {
+        DestroyPlayerCircleProgress(playerid, i);
+        Iter_Remove(circleIDS, i);
     }
-    SendClientMessage(playerid, -1, "Error: Circle reached the limit");
-    return -1;
+    return true;
 }
 
-stock UpdatePlayerCircleProgress(playerid, drawId, value) {
-    if(CircleDraw[playerid][drawId][CircleDraw_Value] == value) return true;    // Prevent Lags
+stock IsValidCircle(playerid, drawid)
+{
+    return CircleData[playerid][drawid][VALID_CIRCLE];
+}
 
-    new Float:x, Float:y, percent, count, Float:preValue = CircleDraw[playerid][drawId][CircleDraw_Polygons], preDraws;
-    for(new Float:v = 0.0; v < 360.0; v += preValue)
-        preDraws++;
+stock DestroyPlayerCircleProgress(playerid, drawId)
+{
+    if (drawId >= MAX_CIRCLES_DRAW) return 0;
+    if (!IsValidCircle(playerid, drawId)) return 0;
 
-    /*      Prevent and Fix Values    */
-    value = value < 0 ? 0 : value;
-	value = value > 100 ? 100 : value;
+    for (new i = 0; i < MAX_POINTS; i++)
+    {
+        if (CircleData[playerid][drawId][CircleData_Points][i] != PlayerText:INVALID_TEXT_DRAW)
+        {
+            PlayerTextDrawDestroy(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
+            CircleData[playerid][drawId][CircleData_Points][i] = PlayerText:INVALID_TEXT_DRAW;
+            Iter_Remove(circleIDS, drawId);
+        }
+    }
 
-    /*      Color Fade?               */
-	percent = (preDraws * value) / 100;
+    new EmptyCircleData[E_CIRCLE_STRUCT];
+    CircleData[playerid][drawId] = EmptyCircleData;
+    return true;
+}
 
-    /*      Update and Create Points  */
-    for(new Float:v = 0.0; v < 360.0; v += preValue) {
-        ctd(v + 180.0, CircleDraw[playerid][drawId][CircleDraw_Size], CircleDraw[playerid][drawId][CircleDraw_Position][0], CircleDraw[playerid][drawId][CircleDraw_Position][1], x, y);
+stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEFAULT_COLOR, background_color = DEFAULT_BACKGROUND_COLOR, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
+{
+    new drawId = Iter_Free(circleIDS);
+    if (IsValidCircle(playerid, drawId))
+    {
+        SendClientMessage(playerid, -1, "Error: Circle reached the limit");
+        return INVALID_DRAW_ID;
+    }
 
-        if(CircleDraw[playerid][drawId][CircleDraw_Update] == false) {
-            CircleDraw[playerid][drawId][CircleDraw_Points][count] = CreatePlayerTextDraw(playerid, x, y, ".");
-            PlayerTextDrawAlignment(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][count], 2);
-            PlayerTextDrawLetterSize(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][count], CircleDraw[playerid][drawId][CircleDraw_Thickness], CircleDraw[playerid][drawId][CircleDraw_Thickness] + (CircleDraw[playerid][drawId][CircleDraw_Thickness] * 2));
-            PlayerTextDrawSetShadow(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][count], 0);
-	
-			CircleDraw[playerid][drawId][CircleDraw_Created][count] = true;
-		}
-		PlayerTextDrawColor(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][count], percent <= count ? (CircleDraw[playerid][drawId][CircleDraw_Background]) : (CircleDraw[playerid][drawId][CircleDraw_Color]));
+    CircleData[playerid][drawId][VALID_CIRCLE] = true;
+    CircleData[playerid][drawId][CIRCLE_THICKNESS] = thickness;
+    CircleData[playerid][drawId][CIRCLE_COLOR] = color;
+    CircleData[playerid][drawId][CIRCLE_BACKGROUND] = background_color;
+    CircleData[playerid][drawId][CIRCLE_SIZE] = size;
+    CircleData[playerid][drawId][CIRCLE_POS][0] = pos_x;
+    CircleData[playerid][drawId][CIRCLE_POS][1] = pos_y;
+    CircleData[playerid][drawId][CIRCLE_VALUE] = -1.0;
+    CircleData[playerid][drawId][CIRCLE_POLYGONS] = polygons;
+
+    new Float:x, Float:y, count = 0, Float:angleStep = CircleData[playerid][drawId][CIRCLE_POLYGONS];
+    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
+    {
+        CalculateTextDrawPosition(angle + 180.0, CircleData[playerid][drawId][CIRCLE_SIZE], CircleData[playerid][drawId][CIRCLE_POS][0], CircleData[playerid][drawId][CIRCLE_POS][1], x, y);
+
+        CircleData[playerid][drawId][CircleData_Points][count] = CreatePlayerTextDraw(playerid, x, y, ".");
+        PlayerTextDrawAlignment(playerid, CircleData[playerid][drawId][CircleData_Points][count], 2);
+        PlayerTextDrawLetterSize(playerid, CircleData[playerid][drawId][CircleData_Points][count], thickness, thickness * 2);
+        PlayerTextDrawSetShadow(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
+        PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], background_color);
+
+        CircleData[playerid][drawId][CREATED_CIRCLE][count] = true;
+        count++;
+    }
+    Iter_Add(circleIDS, drawId);
+    return drawId;
+}
+
+public UpdatePlayerCircleProgress(playerid, drawId, value)
+{
+    if (drawId < 0 || drawId >= MAX_CIRCLES_DRAW) return 0;
+    if (CircleData[playerid][drawId][CIRCLE_VALUE] == value) return 0;
+
+    value = clamp(value, MIN_PROGRESS_VALUE, MAX_PROGRESS_VALUE);
+
+    new Float:x, Float:y, percent, count = 0, Float:angleStep = CircleData[playerid][drawId][CIRCLE_POLYGONS], preDraws = 0;
+    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep) preDraws++;
+
+    percent = (preDraws * value) / 100;
+
+    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
+    {
+        CalculateTextDrawPosition(angle + 180.0, CircleData[playerid][drawId][CIRCLE_SIZE], CircleData[playerid][drawId][CIRCLE_POS][0], CircleData[playerid][drawId][CIRCLE_POS][1], x, y);
+
+        PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], percent <= count ? CircleData[playerid][drawId][CIRCLE_BACKGROUND] : CircleData[playerid][drawId][CIRCLE_COLOR]);
         count++;
     }
 
-    /*     Security Update           */
-    CircleDraw[playerid][drawId][CircleDraw_Update] = true;
-    CircleDraw[playerid][drawId][CircleDraw_Value] = value;
-    
-    for(new i = 0; i < count; i++) {
-		if(!CircleDraw[playerid][drawId][CircleDraw_Created][i]) continue;
-        PlayerTextDrawShow(playerid, CircleDraw[playerid][drawId][CircleDraw_Points][i]);  
+    CircleData[playerid][drawId][CIRCLE_UPDATE] = true;
+    CircleData[playerid][drawId][CIRCLE_VALUE] = value;
+
+    ShowPlayerCircleProgress(playerid, drawId);
+
+    return 1;
+}
+
+stock HideCircleProgressForPlayer(playerid, drawId)
+{
+    if (!IsValidCircle(playerid, drawId)) return 0;
+    for (new i = 0; i < MAX_POINTS; i++)
+    {
+        if (CircleData[playerid][drawId][CREATED_CIRCLE][i])
+        {
+            PlayerTextDrawHide(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
+        }
     }
-    return true;
+    return 1;
+}
+
+stock ShowPlayerCircleProgress(playerid, drawId)
+{
+    if (!IsValidCircle(playerid, drawId)) return 0;
+    for (new i = 0; i < MAX_POINTS; i++)
+    {
+        if (CircleData[playerid][drawId][CREATED_CIRCLE][i])
+        {
+            PlayerTextDrawHide(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
+            PlayerTextDrawShow(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
+        }
+    }
+    return 1;
 }
