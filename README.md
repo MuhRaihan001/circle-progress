@@ -20,6 +20,7 @@ native HideCircleProgressForPlayer(playerid, drawId);
 
 # 📝 Example use to make circle speedometer
 ```c++
+#include "circle.inc"
 forward UpdateCircleProgress(playerid);
 new speed_circlep[MAX_PLAYERS];
 new UpdateCircle[MAX_PLAYERS];
