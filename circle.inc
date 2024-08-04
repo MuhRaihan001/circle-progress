@@ -1,3 +1,12 @@
+/*
+
+    SCRIPT UPDATED BY TsumuX
+    Reduce CreateTextDraw to prevent lags
+    Using Iterator to replace some useless loop
+    Add ShowPlayerCircleProgress and HideCircleProgressForPlayer
+
+*/
+
 #if defined _inc_circle
 	#undef _inc_circle
 #endif
@@ -22,7 +31,7 @@
 		#error You are trying to allocate too few polygons for a circle. Set value of DEFAULT_CIRCLE_POLYGONS greater than or equal to 3.0.
 	#endif
 #else
-	#define DEFAULT_CIRCLE_POLYGONS 15.0
+	#define DEFAULT_CIRCLE_POLYGONS 3.0
 #endif
 
 #if !defined INVALID_DRAW_ID
@@ -164,17 +173,14 @@ stock IsValidCircle(playerid, drawid)
 
 stock DestroyAllPlayerCircleProgress(playerid)
 {
-    new i, validCircles = 0;
-    for (i = 0; i < MAX_CIRCLES_DRAW; i++)
+    for (new i = 0; i < MAX_CIRCLES_DRAW; i++)
     {
         if (IsValidCircle(playerid, i))
         {
             DestroyPlayerCircleProgress(playerid, i);
-            Iter_Remove(circleIDS[playerid], i);
-            validCircles++;
+            Iter_Clear(circleIDS[playerid]);
         }
     }
-    printf("[INFO] Destroyed %d valid circles for player %d", validCircles, playerid);
     return 1;
 }
 
@@ -183,21 +189,16 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
     if (drawId >= MAX_CIRCLES_DRAW) return 0;
     if (!IsValidCircle(playerid, drawId)) return 0;
 
-    new i, validPoints = 0;
-    for (i = 0; i < MAX_POINTS; i++)
+    for (new i = 0; i < MAX_POINTS; i++)
     {
         if (CircleData[playerid][drawId][CircleData_Points][i] != PlayerText:INVALID_TEXT_DRAW)
         {
             PlayerTextDrawDestroy(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
             CircleData[playerid][drawId][CircleData_Points][i] = PlayerText:INVALID_TEXT_DRAW;
             Iter_Remove(circleIDS[playerid], drawId);
-            validPoints++;
         }
     }
-    printf("[INFO] Destroyed %d valid points for circle %d of player %d", validPoints, drawId, playerid);
 
-    new EmptyCircleData[E_CIRCLE_STRUCT];
-    CircleData[playerid][drawId] = EmptyCircleData;
     return true;
 }
 
