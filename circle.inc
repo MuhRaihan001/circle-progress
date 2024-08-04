@@ -1,12 +1,3 @@
-/*
-
-    SCRIPT UPDATED BY TsumuX
-    Reduce CreateTextDraw to prevent lags
-    Using Iterator to replace some useless loop
-    Add ShowPlayerCircleProgress and HideCircleProgressForPlayer
-
-*/
-
 #if defined _inc_circle
 	#undef _inc_circle
 #endif
@@ -165,19 +156,26 @@ stock CalculateTextDrawPosition(Float:angle, Float:distance, Float:sx, Float:sy,
     return true;
 }
 
-stock DestroyAllPlayerCircleProgress(playerid)
-{
-    for (new i = 0; i < MAX_CIRCLES_DRAW; i++)
-    {
-        DestroyPlayerCircleProgress(playerid, i);
-        Iter_Remove(circleIDS[playerid], i);
-    }
-    return 1;
-}
 
 stock IsValidCircle(playerid, drawid)
 {
     return CircleData[playerid][drawid][VALID_CIRCLE];
+}
+
+stock DestroyAllPlayerCircleProgress(playerid)
+{
+    new i, validCircles = 0;
+    for (i = 0; i < MAX_CIRCLES_DRAW; i++)
+    {
+        if (IsValidCircle(playerid, i))
+        {
+            DestroyPlayerCircleProgress(playerid, i);
+            Iter_Remove(circleIDS[playerid], i);
+            validCircles++;
+        }
+    }
+    printf("[INFO] Destroyed %d valid circles for player %d", validCircles, playerid);
+    return 1;
 }
 
 stock DestroyPlayerCircleProgress(playerid, drawId)
@@ -185,20 +183,24 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
     if (drawId >= MAX_CIRCLES_DRAW) return 0;
     if (!IsValidCircle(playerid, drawId)) return 0;
 
-    for (new i = 0; i < MAX_POINTS; i++)
+    new i, validPoints = 0;
+    for (i = 0; i < MAX_POINTS; i++)
     {
         if (CircleData[playerid][drawId][CircleData_Points][i] != PlayerText:INVALID_TEXT_DRAW)
         {
             PlayerTextDrawDestroy(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
             CircleData[playerid][drawId][CircleData_Points][i] = PlayerText:INVALID_TEXT_DRAW;
             Iter_Remove(circleIDS[playerid], drawId);
+            validPoints++;
         }
     }
+    printf("[INFO] Destroyed %d valid points for circle %d of player %d", validPoints, drawId, playerid);
 
     new EmptyCircleData[E_CIRCLE_STRUCT];
     CircleData[playerid][drawId] = EmptyCircleData;
     return true;
 }
+
 
 stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEFAULT_COLOR, background_color = DEFAULT_BACKGROUND_COLOR, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
 {
@@ -228,6 +230,7 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEF
         PlayerTextDrawAlignment(playerid, CircleData[playerid][drawId][CircleData_Points][count], 2);
         PlayerTextDrawLetterSize(playerid, CircleData[playerid][drawId][CircleData_Points][count], thickness, thickness * 2);
         PlayerTextDrawSetShadow(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
+        PlayerTextDrawSetOutline(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
         PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], background_color);
 
         CircleData[playerid][drawId][CREATED_CIRCLE][count] = true;
