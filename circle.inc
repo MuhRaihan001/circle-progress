@@ -229,7 +229,7 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEF
 
         CircleData[playerid][drawId][CircleData_Points][count] = CreatePlayerTextDraw(playerid, x, y, ".");
         PlayerTextDrawAlignment(playerid, CircleData[playerid][drawId][CircleData_Points][count], 2);
-        PlayerTextDrawLetterSize(playerid, CircleData[playerid][drawId][CircleData_Points][count], thickness, thickness * 2);
+        PlayerTextDrawLetterSize(playerid, CircleData[playerid][drawId][CircleData_Points][count], thickness, thickness * 4);
         PlayerTextDrawSetShadow(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
         PlayerTextDrawSetOutline(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
         PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], background_color);
