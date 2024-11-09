@@ -247,3 +247,78 @@ stock ShowPlayerCircleProgress(playerid, drawId)
     }
     return 1;
 }
+
+public OnPlayerDisconnect(playerid, reason)
+{
+	DestroyAllPlayerCircleProgress(playerid);
+
+	new ret = 1;
+	#if defined MainCircle_OnPlayerDisconnect
+		ret = MainCircle_OnPlayerDisconnect(playerid, reason);
+	#endif
+	return ret;
+
+}
+
+public OnGameModeInit()
+{
+
+	Iter_Init(circleIDS);
+    printf("  /$$$$$$  /$$                     /$$               /$$                           /$$                                 /$$                 /$$\n");
+    printf(" /$$__  $$|__/                    | $$              |__/                          | $$                                | $$                | $$\n");
+    printf("| $$  \\__/ /$$  /$$$$$$   /$$$$$$$| $$  /$$$$$$      /$$ /$$$$$$$   /$$$$$$$      | $$        /$$$$$$   /$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$$\n");
+    printf("| $$      | $$ /$$__  $$ /$$_____/| $$ /$$__  $$    | $$| $$__  $$ /$$_____/      | $$       /$$__  $$ |____  $$ /$$__  $$ /$$__  $$ /$$__  $$\n");
+    printf("| $$      | $$| $$  \\__/| $$      | $$| $$$$$$$$    | $$| $$  \\ $$| $$            | $$      | $$  \\ $$  /$$$$$$$| $$  | $$| $$$$$$$$| $$  | $$\n");
+    printf("| $$    $$| $$| $$      | $$      | $$| $$_____/    | $$| $$  | $$| $$            | $$      | $$  | $$ /$$__  $$| $$  | $$| $$_____/| $$  | $$\n");
+    printf("|  $$$$$$/| $$| $$      |  $$$$$$$| $$|  $$$$$$$ /$$| $$| $$  | $$|  $$$$$$$      | $$$$$$$$|  $$$$$$/|  $$$$$$$|  $$$$$$$|  $$$$$$$|  $$$$$$$\n");
+    printf(" \\______/ |__/|__/       \\_______/|__/ \\_______/|__/|__/|__/  |__/ \\_______/      |________/ \\______/  \\_______/ \\_______/ \\_______/ \\_______/\n");
+    printf("                                                                                                                                              \n");
+    printf("                                                                                                                                              \n");
+    printf("                                                                                                                                              \n");
+
+
+	new ret = 1;
+	#if defined MainCircle_OnGameModeInit
+		ret = MainCircle_OnGameModeInit();
+	#endif
+	return ret;
+}
+
+
+
+#if defined _ALS_OnGameModeInit
+
+	#undef OnGameModeInit
+
+#else
+
+	#define _ALS_OnGameModeInit
+
+#endif
+
+#define OnGameModeInit MainCircle_OnGameModeInit
+
+#if defined MainCircle_OnGameModeInit
+
+	forward MainCircle_OnGameModeInit();
+
+#endif
+
+
+#if defined _ALS_OnPlayerDisconnect
+
+	#undef OnPlayerDisconnect
+
+#else
+
+	#define _ALS_OnPlayerDisconnect
+
+#endif
+
+#define OnPlayerDisconnect MainCircle_OnPlayerDisconnect
+
+#if defined MainCircle_OnPlayerDisconnect
+
+	forward MainCircle_OnPlayerDisconnect(playerid, reason);
+
+#endif
