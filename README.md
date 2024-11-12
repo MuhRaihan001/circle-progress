@@ -1,6 +1,4 @@
-Here is an updated version of your `readme.md` to match the latest code updates, along with detailed explanations, especially regarding the new **Max Value** feature.
 
----
 
 # 🚀 Circle Progress
 
@@ -98,12 +96,8 @@ The latest code introduces several new definitions and validation checks:
 # 📝 Credits
 - **freesampscripts** - Created the original source code.
 - **Diogo "blueN"** - Recreated the code with new natives and updated functions.
-- **TsumuX** - Fixed bugs and reduced lag caused by high textdraw usage.
+- **TsumuX** - Fixed bugs and reduced lag caused by high textdraw usage and add few natives
 
 # Preview
 
 ![Preview](https://github.com/MuhRaihan001/circle-progress/blob/main/sa-mp-017.png)
-
---- 
-
-This updated documentation should now match your latest code, including details on the `max` parameter and optimizations made to reduce lag. Let me know if there are additional aspects you'd like to clarify!
