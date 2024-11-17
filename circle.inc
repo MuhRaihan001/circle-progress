@@ -120,13 +120,6 @@ stock GetCircleProgressValue(playerid, drawId)
     return floatround(value);
 }
 
-stock SetCircleProgressMaxValue(playerid, drawId, value)
-{
-    if(value == 0 || value < 0) return 0;
-    CircleData[playerid][drawId][CIRCLE_MAX_VALUE] = value;
-    return 1; 
-}
-
 stock DestroyAllPlayerCircleProgress(playerid)
 {
     for (new i = 0; i < MAX_CIRCLES_DRAW; i++)
@@ -158,8 +151,28 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
     return true;
 }
 
+stock SetCircleProgressMaxValue(playerid, drawId, value)
+{
+    if(value == 0 || value < 0) return 0;
+    CircleData[playerid][drawId][CIRCLE_MAX_VALUE] = value;
+    return 1; 
+}
 
-stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEFAULT_COLOR, background_color = DEFAULT_BACKGROUND_COLOR, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS, max = MAX_PROGRESS_VALUE)
+stock SetCircleProgressColor(playerid, drawId, color)
+{
+    if(drawId == INVALID_DRAW_ID) return 0;
+    CircleData[playerid][drawId][CIRCLE_COLOR] = color;
+    return 1;
+}
+
+stock SetCircleBackgroundColor(playerid, drawId, color)
+{
+    if(drawId == INVALID_DRAW_ID) return 0;
+    CircleData[playerid][drawId][CIRCLE_BACKGROUND] = color;
+    return 1;
+}
+
+stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
 {
     new drawId = Iter_Free(circleIDS[playerid]);
     if (drawId < 0 || drawId >= MAX_CIRCLES_DRAW)
@@ -170,14 +183,11 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEF
 
     CircleData[playerid][drawId][VALID_CIRCLE] = true;
     CircleData[playerid][drawId][CIRCLE_THICKNESS] = thickness;
-    CircleData[playerid][drawId][CIRCLE_COLOR] = color;
-    CircleData[playerid][drawId][CIRCLE_BACKGROUND] = background_color;
     CircleData[playerid][drawId][CIRCLE_SIZE] = size;
+    CircleData[playerid][drawId][CIRCLE_VALUE] = -1;
     CircleData[playerid][drawId][CIRCLE_POS][0] = pos_x;
     CircleData[playerid][drawId][CIRCLE_POS][1] = pos_y;
-    CircleData[playerid][drawId][CIRCLE_VALUE] = -1.0;
     CircleData[playerid][drawId][CIRCLE_POLYGONS] = polygons;
-    CircleData[playerid][drawId][CIRCLE_MAX_VALUE] = max;
 
     new Float:x, Float:y, count = 0, Float:angleStep = CircleData[playerid][drawId][CIRCLE_POLYGONS];
     for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
@@ -189,7 +199,6 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, color = DEF
         PlayerTextDrawLetterSize(playerid, CircleData[playerid][drawId][CircleData_Points][count], thickness, thickness * 4);
         PlayerTextDrawSetShadow(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
         PlayerTextDrawSetOutline(playerid, CircleData[playerid][drawId][CircleData_Points][count], 0);
-        PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], background_color);
 
         CircleData[playerid][drawId][CREATED_CIRCLE][count] = true;
         count++;

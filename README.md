@@ -38,7 +38,7 @@ SetPlayerCircleProgressValue(playerid, circleId, 75); // Set circle to 75%
 
 #### 1. **`CreatePlayerCircleProgress`**
    - Creates a circular progress indicator for a player.
-   - **Arguments**: Player ID, position (x, y), circle color, background color, size, thickness, polygon density, max progress value.
+   - **Arguments**: Player ID, position (x, y), circle color, background color, size, thickness, polygon density.
    - **Returns**: Circle ID (a unique identifier for the circle).
    - **Explanation**: This function creates a circle for the player at a specific position, with defined attributes like size, thickness, color, and the number of polygons (smoothness). 
 
@@ -84,6 +84,23 @@ SetPlayerCircleProgressValue(playerid, circleId, 75); // Set circle to 75%
    - **Returns**: Boolean `true`.
    - **Explanation**: Determines the coordinates where each point of the circle will be placed, ensuring that the circle’s segments are evenly distributed.
 
+### 9. **`SetCircleProgressMaxValue`**
+   - Sets the maximum progress value for a player's circle.
+   - **Arguments**: Player ID, Circle ID, max progress value.
+   - **Returns**: Success (1) or failure (0).
+   - **Explanation**: Updates the maximum progress value for a specific player's circle.
+
+### 10. **`SetCircleProgressColor`**
+   - Sets the color of a player's circle progress.
+   - **Arguments**: Player ID, Circle ID, color (RGB values).
+   - **Returns**: Success (1) or failure (0).
+   - **Explanation**: Changes the color of the circle's progress bar to the specified RGB values.
+
+### 11. **`SetCircleBackgroundColor`**
+   - Sets the background color of a player's circle progress.
+   - **Arguments**: Player ID, Circle ID, color (RGB values).
+   - **Returns**: Success (1) or failure (0).
+   - **Explanation**: Changes the background color of the circle to the specified RGB values.
 ---
 
 ## ⚡ Conclusion
