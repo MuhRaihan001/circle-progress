@@ -101,6 +101,18 @@ SetPlayerCircleProgressValue(playerid, circleId, 75); // Set circle to 75%
    - **Arguments**: Player ID, Circle ID, color (RGB values).
    - **Returns**: Success (1) or failure (0).
    - **Explanation**: Changes the background color of the circle to the specified RGB values.
+
+### 12. **`CircleColorChanging`**
+   - Checks if the circle color is changing the higher the value.
+   - **Arguments**: Player ID, Circle ID, allow (true/false).
+   - **Returns**: Success (1) or failure (0).
+   - **Explanation**: This function is used to check if the circle color is changing the higher the circle value
+
+### 13. **`SetCircleMaxColor`**
+   - Sets the maximum color of a player's circle progress.
+   - **Arguments**: Player ID, Circle ID, color (RGB values).
+   - **Returns**: Success (1) or failure (0).
+   - **Explanation**: Sets the color of the circle's progress bar when it reaches its maximum value
 ---
 
 ## ⚡ Conclusion

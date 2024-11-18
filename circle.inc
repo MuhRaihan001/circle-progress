@@ -88,10 +88,12 @@ enum E_CIRCLE_STRUCT
     CIRCLE_COLOR,
     CIRCLE_BACKGROUND,
     CIRCLE_MAX_VALUE,
+    CIRCLE_MAX_COLOR,
 
     bool:CREATED_CIRCLE[MAX_POINTS + 1],
     bool:VALID_CIRCLE,
     bool:CIRCLE_UPDATE,
+    bool: CIRCLE_GRADIENT,
 
     Float:CIRCLE_POS[2],
     Float:CIRCLE_THICKNESS,
@@ -112,6 +114,19 @@ stock CalculateTextDrawPosition(Float:angle, Float:distance, Float:sx, Float:sy,
     x = sx + (distance * floatsin(-angle, degrees));
     y = sy + (distance * floatcos(angle, degrees));
     return true;
+}
+
+stock InterpolateColor(colorStart, colorEnd, Float: progress)
+{
+    new r1 = (colorStart >> 24) & 0xFF, g1 = (colorStart >> 16) & 0xFF, b1 = (colorStart >> 8) & 0xFF, a1 = colorStart & 0xFF;
+    new r2 = (colorEnd >> 24) & 0xFF, g2 = (colorEnd >> 16) & 0xFF, b2 = (colorEnd >> 8) & 0xFF, a2 = colorEnd & 0xFF;
+
+    new r = floatround(r1 + (r2 - r1) * progress);
+    new g = floatround(g1 + (g2 - g1) * progress);
+    new b = floatround(b1 + (b2 - b1) * progress);
+    new a = floatround(a1 + (a2 - a1) * progress);
+
+    return (r << 24) | (g << 16) | (b << 8) | a;
 }
 
 stock GetCircleProgressValue(playerid, drawId)
@@ -172,6 +187,20 @@ stock SetCircleBackgroundColor(playerid, drawId, color)
     return 1;
 }
 
+stock CircleColorChanging(playerid, drawId, bool: allow)
+{
+    if(drawId == INVALID_DRAW_ID) return 0;
+    CircleData[playerid][drawId][CIRCLE_GRADIENT] = allow;
+    return 1;
+}
+
+stock SetCircleMaxColor(playerid, drawId, maxcolor)
+{
+    if(drawId == INVALID_DRAW_ID) return 0;
+    CircleData[playerid][drawId][CIRCLE_MAX_COLOR] = maxcolor;
+    return 1;
+}
+
 stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
 {
     new drawId = Iter_Free(circleIDS[playerid]);
@@ -217,11 +246,13 @@ public SetPlayerCircleProgressValue(playerid, drawId, value)
     for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep) preDraws++;
 
     percent = (preDraws * value) / CircleData[playerid][drawId][CIRCLE_MAX_VALUE];
+    new interpolatedColor = InterpolateColor(CircleData[playerid][drawId][CIRCLE_COLOR], 0x00FF00FF, float(percent) / preDraws);
+    new color = CircleData[playerid][drawId][CIRCLE_GRADIENT] ? interpolatedColor : CircleData[playerid][drawId][CIRCLE_COLOR];
 
     for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
     {
         CalculateTextDrawPosition(angle + 180.0, CircleData[playerid][drawId][CIRCLE_SIZE], CircleData[playerid][drawId][CIRCLE_POS][0], CircleData[playerid][drawId][CIRCLE_POS][1], x, y);
-        PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], percent <= count ? CircleData[playerid][drawId][CIRCLE_BACKGROUND] : CircleData[playerid][drawId][CIRCLE_COLOR]);
+        PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], percent <= count ? CircleData[playerid][drawId][CIRCLE_BACKGROUND] : color);
         count++;
     }
 
