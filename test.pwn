@@ -19,7 +19,7 @@ public OnPlayerConnect(playerid)
 	SetCircleProgressMaxValue(playerid, speed_circle[playerid], 150);
 	SetCircleProgressColor(playerid, speed_circle[playerid], 0x0388FCFF);
 	SetCircleBackgroundColor(playerid, speed_circle[playerid], 774778623);
-	CircleColorChanging(playerid, speed_circle[playerid], true);
+	CircleGradient(playerid, speed_circle[playerid], true);
 	SetCircleMaxColor(playerid, speed_circle[playerid], 0xFF0000FF);
     return 1;
 }

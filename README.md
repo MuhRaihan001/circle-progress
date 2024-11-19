@@ -102,7 +102,7 @@ SetPlayerCircleProgressValue(playerid, circleId, 75); // Set circle to 75%
    - **Returns**: Success (1) or failure (0).
    - **Explanation**: Changes the background color of the circle to the specified RGB values.
 
-### 12. **`CircleColorChanging`**
+### 12. **`CircleGradient`**
    - Checks if the circle color is changing the higher the value.
    - **Arguments**: Player ID, Circle ID, allow (true/false).
    - **Returns**: Success (1) or failure (0).

@@ -187,7 +187,7 @@ stock SetCircleBackgroundColor(playerid, drawId, color)
     return 1;
 }
 
-stock CircleColorChanging(playerid, drawId, bool: allow)
+stock CircleGradient(playerid, drawId, bool: allow)
 {
     if(drawId == INVALID_DRAW_ID) return 0;
     CircleData[playerid][drawId][CIRCLE_GRADIENT] = allow;
