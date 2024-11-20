@@ -162,6 +162,9 @@ stock DestroyPlayerCircleProgress(playerid, drawId)
             Iter_Remove(circleIDS[playerid], drawId);
         }
     }
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Destroyed player circle progress for player %d and circleid: %d.", playerid, drawId);
+    #endif
 
     return true;
 }
@@ -170,6 +173,9 @@ stock SetCircleProgressMaxValue(playerid, drawId, value)
 {
     if(value == 0 || value < 0) return 0;
     CircleData[playerid][drawId][CIRCLE_MAX_VALUE] = value;
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Set circle progress max value for player %d to %d for circleid: %d.", playerid, value, drawId);
+    #endif
     return 1; 
 }
 
@@ -177,6 +183,9 @@ stock SetCircleProgressColor(playerid, drawId, color)
 {
     if(drawId == INVALID_DRAW_ID) return 0;
     CircleData[playerid][drawId][CIRCLE_COLOR] = color;
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Set circle progress color for player %d to %d for circleid: %d.", playerid, color, drawId);
+    #endif
     return 1;
 }
 
@@ -184,6 +193,9 @@ stock SetCircleBackgroundColor(playerid, drawId, color)
 {
     if(drawId == INVALID_DRAW_ID) return 0;
     CircleData[playerid][drawId][CIRCLE_BACKGROUND] = color;
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Set circle progress background color for player %d to %d for circleid: %d", playerid, color, drawId);
+    #endif
     return 1;
 }
 
@@ -191,6 +203,9 @@ stock CircleGradient(playerid, drawId, bool: allow)
 {
     if(drawId == INVALID_DRAW_ID) return 0;
     CircleData[playerid][drawId][CIRCLE_GRADIENT] = allow;
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Set circle progress color changing for player %d to %s for circleid: %d", playerid, allow ? "On" : "Off", drawId);
+    #endif
     return 1;
 }
 
@@ -198,6 +213,9 @@ stock SetCircleMaxColor(playerid, drawId, maxcolor)
 {
     if(drawId == INVALID_DRAW_ID) return 0;
     CircleData[playerid][drawId][CIRCLE_MAX_COLOR] = maxcolor;
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Set circle progress max color for player %d to %d for circleid: %d", playerid, maxcolor, drawId);
+    #endif
     return 1;
 }
 
@@ -233,6 +251,9 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size 
         count++;
     }
     Iter_Add(circleIDS[playerid], drawId);
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Created circle progress for player %d", playerid);
+    #endif
     return drawId;
 }
 
@@ -273,6 +294,9 @@ stock HideCircleProgressForPlayer(playerid, drawId)
             PlayerTextDrawHide(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
         }
     }
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Hiding circle progress for player %d", playerid);
+    #endif
     return 1;
 }
 
@@ -285,6 +309,9 @@ stock ShowPlayerCircleProgress(playerid, drawId)
             PlayerTextDrawShow(playerid, CircleData[playerid][drawId][CircleData_Points][i]);
         }
     }
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] Showing circle progress for player %d", playerid);
+    #endif
     return 1;
 }
 
@@ -315,6 +342,10 @@ public OnGameModeInit()
     printf("                                                                                                                                              \n");
     printf("                                                                                                                                              \n");
     printf("                                                                                                                                              \n");
+
+    #if defined DEBUG_CIRCLE
+        printf("[CIRCLE-PROGRESS] DEBUG MODE ON");
+    #endif
 
 
 	new ret = 1;
