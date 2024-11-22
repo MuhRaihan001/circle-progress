@@ -221,12 +221,9 @@ stock SetCircleMaxColor(playerid, drawId, maxcolor)
 
 stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size = DEFAULT_SIZE, Float:thickness = DEFAULT_THICKNESS, Float:polygons = DEFAULT_CIRCLE_POLYGONS)
 {
-    new drawId = Iter_Free(circleIDS[playerid]);
+    new drawId = Iter_Free(circleIDS[playerid]), Float:x, Float:y, count = 0;
     if (drawId < 0 || drawId >= MAX_CIRCLES_DRAW)
-    {
-        SendClientMessage(playerid, -1, "[ERROR] Invalid circle ID");
         return 0;
-    }
 
     CircleData[playerid][drawId][VALID_CIRCLE] = true;
     CircleData[playerid][drawId][CIRCLE_THICKNESS] = thickness;
@@ -236,8 +233,7 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size 
     CircleData[playerid][drawId][CIRCLE_POS][1] = pos_y;
     CircleData[playerid][drawId][CIRCLE_POLYGONS] = polygons;
 
-    new Float:x, Float:y, count = 0, Float:angleStep = CircleData[playerid][drawId][CIRCLE_POLYGONS];
-    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
+    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += CircleData[playerid][drawId][CIRCLE_POLYGONS])
     {
         CalculateTextDrawPosition(angle + 180.0, CircleData[playerid][drawId][CIRCLE_SIZE], CircleData[playerid][drawId][CIRCLE_POS][0], CircleData[playerid][drawId][CIRCLE_POS][1], x, y);
 
@@ -260,28 +256,20 @@ stock CreatePlayerCircleProgress(playerid, Float:pos_x, Float:pos_y, Float:size 
 public SetPlayerCircleProgressValue(playerid, drawId, value)
 {
     if (GetCircleProgressValue(playerid, drawId) == value) return 0;
-
+    
     value = clamp(value, MIN_PROGRESS_VALUE, CircleData[playerid][drawId][CIRCLE_MAX_VALUE]);
-
-    new Float:x, Float:y, percent, count = 0, Float:angleStep = CircleData[playerid][drawId][CIRCLE_POLYGONS], preDraws = 0;
-    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep) preDraws++;
-
-    percent = (preDraws * value) / CircleData[playerid][drawId][CIRCLE_MAX_VALUE];
-    new interpolatedColor = InterpolateColor(CircleData[playerid][drawId][CIRCLE_COLOR], 0x00FF00FF, float(percent) / preDraws);
+    new Float:preDraws = MAX_ANGLE / CircleData[playerid][drawId][CIRCLE_POLYGONS];
+    new Float:percent = (preDraws * value) / CircleData[playerid][drawId][CIRCLE_MAX_VALUE];
+    new interpolatedColor = InterpolateColor(CircleData[playerid][drawId][CIRCLE_COLOR], 0x00FF00FF, percent / preDraws);
     new color = CircleData[playerid][drawId][CIRCLE_GRADIENT] ? interpolatedColor : CircleData[playerid][drawId][CIRCLE_COLOR];
 
-    for (new Float:angle = 0.0; angle < MAX_ANGLE; angle += angleStep)
-    {
-        CalculateTextDrawPosition(angle + 180.0, CircleData[playerid][drawId][CIRCLE_SIZE], CircleData[playerid][drawId][CIRCLE_POS][0], CircleData[playerid][drawId][CIRCLE_POS][1], x, y);
+    for (new count = 0; count < preDraws; count++)
         PlayerTextDrawColor(playerid, CircleData[playerid][drawId][CircleData_Points][count], percent <= count ? CircleData[playerid][drawId][CIRCLE_BACKGROUND] : color);
-        count++;
-    }
 
     CircleData[playerid][drawId][CIRCLE_UPDATE] = true;
     CircleData[playerid][drawId][CIRCLE_VALUE] = value;
 
     ShowPlayerCircleProgress(playerid, drawId);
-
     return 1;
 }
 
@@ -344,9 +332,8 @@ public OnGameModeInit()
     printf("                                                                                                                                              \n");
 
     #if defined DEBUG_CIRCLE
-        printf("[CIRCLE-PROGRESS] DEBUG MODE ON");
+        printf("[CIRCLE-PROGRESS] Debug Mode On");
     #endif
-
 
 	new ret = 1;
 	#if defined MainCircle_OnGameModeInit
@@ -358,38 +345,24 @@ public OnGameModeInit()
 
 
 #if defined _ALS_OnGameModeInit
-
 	#undef OnGameModeInit
-
 #else
-
 	#define _ALS_OnGameModeInit
-
 #endif
 
 #define OnGameModeInit MainCircle_OnGameModeInit
-
 #if defined MainCircle_OnGameModeInit
-
 	forward MainCircle_OnGameModeInit();
-
 #endif
 
 
 #if defined _ALS_OnPlayerDisconnect
-
 	#undef OnPlayerDisconnect
-
 #else
-
 	#define _ALS_OnPlayerDisconnect
-
 #endif
 
 #define OnPlayerDisconnect MainCircle_OnPlayerDisconnect
-
 #if defined MainCircle_OnPlayerDisconnect
-
 	forward MainCircle_OnPlayerDisconnect(playerid, reason);
-
 #endif
